@@ -1,103 +1,368 @@
-import Image from "next/image";
+/* eslint-disable @typescript-eslint/no-explicit-any, react-hooks/exhaustive-deps, no-console */
+
+'use client';
+
+import { ChevronRight } from 'lucide-react';
+import Link from 'next/link';
+import { Suspense, useEffect, useState } from 'react';
+
+// 客戶端收藏 API
+import {
+  clearAllFavorites,
+  getAllFavorites,
+  getAllPlayRecords,
+  subscribeToDataUpdates,
+} from '@/lib/db.client';
+import { getTMDbCategories } from '@/lib/tmdb.client';
+import { TMDbItem } from '@/lib/types';
+
+import CapsuleSwitch from '@/components/CapsuleSwitch';
+import ContinueWatching from '@/components/ContinueWatching';
+import PageLayout from '@/components/PageLayout';
+import ScrollableRow from '@/components/ScrollableRow';
+import { useSite } from '@/components/SiteProvider';
+import VideoCard from '@/components/VideoCard';
+
+function HomeClient() {
+  const [activeTab, setActiveTab] = useState<'home' | 'favorites'>('home');
+  const [hotMovies, setHotMovies] = useState<TMDbItem[]>([]);
+  const [hotTvShows, setHotTvShows] = useState<TMDbItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { announcement } = useSite();
+
+  const [showAnnouncement, setShowAnnouncement] = useState(false);
+
+  // 檢查公告彈窗狀態
+  useEffect(() => {
+    if (typeof window !== 'undefined' && announcement) {
+      const hasSeenAnnouncement = localStorage.getItem('hasSeenAnnouncement');
+      if (hasSeenAnnouncement !== announcement) {
+        setShowAnnouncement(true);
+      } else {
+        setShowAnnouncement(Boolean(!hasSeenAnnouncement && announcement));
+      }
+    }
+  }, [announcement]);
+
+  // 收藏夾資料
+  type FavoriteItem = {
+    id: string;
+    source: string;
+    title: string;
+    poster: string;
+    episodes: number;
+    source_name: string;
+    currentEpisode?: number;
+    search_title?: string;
+  };
+
+  const [favoriteItems, setFavoriteItems] = useState<FavoriteItem[]>([]);
+
+  useEffect(() => {
+    const fetchTMDbData = async () => {
+      try {
+        setLoading(true);
+
+        // 並行獲取熱門電影和熱門劇集
+        const [moviesData, tvShowsData] = await Promise.all([
+          getTMDbCategories({
+            kind: 'movie',
+            category: '年度熱門',
+            type: '2025',
+            pageLimit: 20,
+          }),
+          getTMDbCategories({
+            kind: 'tv',
+            category: '年度熱門劇集',
+            type: '2024',
+            pageLimit: 20,
+          }),
+        ]);
+
+        if (moviesData.code === 200) {
+          // 只顯示評分大於 6.6 的電影
+          const filteredMovies = moviesData.list.filter((movie) => {
+            const rate = parseFloat(movie.rate);
+            return !isNaN(rate) && rate >= 6.6;
+          });
+          setHotMovies(filteredMovies);
+        }
+
+        if (tvShowsData.code === 200) {
+          // 只顯示評分大於 6.6 的劇集
+          const filteredTvShows = tvShowsData.list.filter((show) => {
+            const rate = parseFloat(show.rate);
+            return !isNaN(rate) && rate >= 6.6;
+          });
+          setHotTvShows(filteredTvShows);
+        }
+      } catch (error) {
+        console.error('獲取TMDb數據失敗:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTMDbData();
+  }, []);
+
+  // 處理收藏資料更新的函數
+  const updateFavoriteItems = async (allFavorites: Record<string, any>) => {
+    const allPlayRecords = await getAllPlayRecords();
+
+    // 根據儲存時間排序（從近到遠）
+    const sorted = Object.entries(allFavorites)
+      .sort(([, a], [, b]) => b.save_time - a.save_time)
+      .map(([key, fav]) => {
+        const plusIndex = key.indexOf('+');
+        const source = key.slice(0, plusIndex);
+        const id = key.slice(plusIndex + 1);
+
+        // 尋找對應的播放記錄，獲取目前集數
+        const playRecord = allPlayRecords[key];
+        const currentEpisode = playRecord?.index;
+
+        return {
+          id,
+          source,
+          title: fav.title,
+          year: fav.year,
+          poster: fav.cover,
+          episodes: fav.total_episodes,
+          source_name: fav.source_name,
+          currentEpisode,
+          search_title: fav?.search_title,
+        } as FavoriteItem;
+      });
+    setFavoriteItems(sorted);
+  };
+
+  // 當切換到收藏夾時載入收藏資料
+  useEffect(() => {
+    if (activeTab !== 'favorites') return;
+
+    const loadFavorites = async () => {
+      const allFavorites = await getAllFavorites();
+      await updateFavoriteItems(allFavorites);
+    };
+
+    loadFavorites();
+
+    // 監聽收藏更新事件
+    const unsubscribe = subscribeToDataUpdates(
+      'favoritesUpdated',
+      (newFavorites: Record<string, any>) => {
+        updateFavoriteItems(newFavorites);
+      }
+    );
+
+    return unsubscribe;
+  }, [activeTab]);
+
+  const handleCloseAnnouncement = (announcement: string) => {
+    setShowAnnouncement(false);
+    localStorage.setItem('hasSeenAnnouncement', announcement); // 記錄已查看彈窗
+  };
+
+  return (
+    <PageLayout>
+      <div className='px-2 sm:px-10 py-4 sm:py-8 overflow-visible'>
+        {/* 頂部 Tab 切換 */}
+        <div className='mb-8 flex justify-center'>
+          <CapsuleSwitch
+            options={[
+              { label: '首頁', value: 'home' },
+              { label: '收藏夾', value: 'favorites' },
+            ]}
+            active={activeTab}
+            onChange={(value) => setActiveTab(value as 'home' | 'favorites')}
+          />
+        </div>
+
+        <div className='max-w-[95%] mx-auto'>
+          {activeTab === 'favorites' ? (
+            // 收藏夾視圖
+            <section className='mb-8'>
+              <div className='mb-4 flex items-center justify-between'>
+                <h2 className='text-xl font-bold text-gray-800 dark:text-gray-200'>
+                  我的收藏
+                </h2>
+                {favoriteItems.length > 0 && (
+                  <button
+                    className='text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+                    onClick={async () => {
+                      await clearAllFavorites();
+                      setFavoriteItems([]);
+                    }}
+                  >
+                    清空
+                  </button>
+                )}
+              </div>
+              <div className='justify-start grid grid-cols-3 gap-x-2 gap-y-14 sm:gap-y-20 px-0 sm:px-2 sm:grid-cols-[repeat(auto-fill,_minmax(11rem,_1fr))] sm:gap-x-8'>
+                {favoriteItems.map((item) => (
+                  <div key={item.id + item.source} className='w-full'>
+                    <VideoCard
+                      {...item}
+                      from='favorite'
+                      type={item.episodes > 1 ? 'tv' : ''}
+                    />
+                  </div>
+                ))}
+                {favoriteItems.length === 0 && (
+                  <div className='col-span-full text-center text-gray-500 py-8 dark:text-gray-400'>
+                    暫無收藏內容
+                  </div>
+                )}
+              </div>
+            </section>
+          ) : (
+            // 首頁視圖
+            <>
+              {/* 繼續觀看 */}
+              <ContinueWatching />
+
+              {/* 熱門電影 */}
+              <section className='mb-8'>
+                <div className='mb-4 flex items-center justify-between'>
+                  <h2 className='text-xl font-bold text-gray-800 dark:text-gray-200'>
+                    熱門電影
+                  </h2>
+                  <Link
+                    href='/tmdb?type=movie'
+                    className='flex items-center text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+                  >
+                    查看更多
+                    <ChevronRight className='w-4 h-4 ml-1' />
+                  </Link>
+                </div>
+                <ScrollableRow>
+                  {loading
+                    ? // 載入狀態顯示灰色佔位資料
+                      Array.from({ length: 8 }).map((_, index) => (
+                        <div
+                          key={index}
+                          className='min-w-[96px] w-24 sm:min-w-[180px] sm:w-44'
+                        >
+                          <div className='relative aspect-[2/3] w-full overflow-hidden rounded-lg bg-gray-200 animate-pulse dark:bg-gray-800'>
+                            <div className='absolute inset-0 bg-gray-300 dark:bg-gray-700'></div>
+                          </div>
+                          <div className='mt-2 h-4 bg-gray-200 rounded animate-pulse dark:bg-gray-800'></div>
+                        </div>
+                      ))
+                    : // 顯示真實資料
+                      hotMovies.map((movie, index) => (
+                        <div
+                          key={index}
+                          className='min-w-[96px] w-24 sm:min-w-[180px] sm:w-44'
+                        >
+                          <VideoCard
+                            from='tmdb'
+                            title={movie.title}
+                            poster={movie.poster}
+                            tmdb_id={movie.id}
+                            rate={movie.rate}
+                            year={movie.year}
+                            type='movie'
+                          />
+                        </div>
+                      ))}
+                </ScrollableRow>
+              </section>
+
+              {/* 熱門劇集 */}
+              <section className='mb-8'>
+                <div className='mb-4 flex items-center justify-between'>
+                  <h2 className='text-xl font-bold text-gray-800 dark:text-gray-200'>
+                    熱門劇集
+                  </h2>
+                  <Link
+                    href='/tmdb?type=tv'
+                    className='flex items-center text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+                  >
+                    查看更多
+                    <ChevronRight className='w-4 h-4 ml-1' />
+                  </Link>
+                </div>
+                <ScrollableRow>
+                  {loading
+                    ? // 載入狀態顯示灰色佔位資料
+                      Array.from({ length: 8 }).map((_, index) => (
+                        <div
+                          key={index}
+                          className='min-w-[96px] w-24 sm:min-w-[180px] sm:w-44'
+                        >
+                          <div className='relative aspect-[2/3] w-full overflow-hidden rounded-lg bg-gray-200 animate-pulse dark:bg-gray-800'>
+                            <div className='absolute inset-0 bg-gray-300 dark:bg-gray-700'></div>
+                          </div>
+                          <div className='mt-2 h-4 bg-gray-200 rounded animate-pulse dark:bg-gray-800'></div>
+                        </div>
+                      ))
+                    : // 顯示真實資料
+                      hotTvShows.map((show, index) => (
+                        <div
+                          key={index}
+                          className='min-w-[96px] w-24 sm:min-w-[180px] sm:w-44'
+                        >
+                          <VideoCard
+                            from='tmdb'
+                            title={show.title}
+                            poster={show.poster}
+                            tmdb_id={show.id}
+                            rate={show.rate}
+                            year={show.year}
+                            type='tv'
+                          />
+                        </div>
+                      ))}
+                </ScrollableRow>
+              </section>
+            </>
+          )}
+        </div>
+      </div>
+      {announcement && showAnnouncement && (
+        <div
+          className={`fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm dark:bg-black/70 p-4 transition-opacity duration-300 ${
+            showAnnouncement ? '' : 'opacity-0 pointer-events-none'
+          }`}
+        >
+          <div className='w-full max-w-md rounded-xl bg-white p-6 shadow-xl dark:bg-gray-900 transform transition-all duration-300 hover:shadow-2xl'>
+            <div className='flex justify-between items-start mb-4'>
+              <h3 className='text-2xl font-bold tracking-tight text-gray-800 dark:text-white border-b border-green-500 pb-1'>
+                提示
+              </h3>
+              <button
+                onClick={() => handleCloseAnnouncement(announcement)}
+                className='text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-white transition-colors'
+                aria-label='關閉'
+              ></button>
+            </div>
+            <div className='mb-6'>
+              <div className='relative overflow-hidden rounded-lg mb-4 bg-green-50 dark:bg-green-900/20'>
+                <div className='absolute inset-y-0 left-0 w-1.5 bg-green-500 dark:bg-green-400'></div>
+                <p className='ml-4 text-gray-600 dark:text-gray-300 leading-relaxed'>
+                  {announcement}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => handleCloseAnnouncement(announcement)}
+              className='w-full rounded-lg bg-gradient-to-r from-green-600 to-green-700 px-4 py-3 text-white font-medium shadow-md hover:shadow-lg hover:from-green-700 hover:to-green-800 dark:from-green-600 dark:to-green-700 dark:hover:from-green-700 dark:hover:to-green-800 transition-all duration-300 transform hover:-translate-y-0.5'
+            >
+              我知道了
+            </button>
+          </div>
+        </div>
+      )}
+    </PageLayout>
+  );
+}
 
 export default function Home() {
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+    <Suspense>
+      <HomeClient />
+    </Suspense>
   );
 }
