@@ -12,9 +12,9 @@ export enum UpdateStatus {
 }
 
 // 遠端版本檢查 URL 設定
-const VERSION_CHECK_URLS = [
-  'https://ghfast.top/raw.githubusercontent.com/senshinya/MoonTV/main/VERSION.txt',
-  'https://raw.githubusercontent.com/senshinya/MoonTV/main/VERSION.txt',
+// 如需啟用版本檢查，請替換為你自己的 GitHub 倉庫路徑
+const VERSION_CHECK_URLS: string[] = [
+  // 'https://raw.githubusercontent.com/your-username/your-repo/main/VERSION.txt',
 ];
 
 /**
@@ -28,19 +28,20 @@ export async function checkForUpdates(): Promise<UpdateStatus> {
   }
 
   try {
-    // 嘗試從主要 URL 獲取版本資訊
-    const primaryVersion = await fetchVersionFromUrl(VERSION_CHECK_URLS[0]);
-    if (primaryVersion) {
-      return compareVersions(primaryVersion);
+    // 如果未配置 URL，直接返回無更新
+    if (VERSION_CHECK_URLS.length === 0) {
+      return UpdateStatus.NO_UPDATE;
     }
 
-    // 如果主要 URL 失敗，嘗試備用 URL
-    const backupVersion = await fetchVersionFromUrl(VERSION_CHECK_URLS[1]);
-    if (backupVersion) {
-      return compareVersions(backupVersion);
+    // 嘗試從配置的 URL 獲取版本資訊
+    for (const url of VERSION_CHECK_URLS) {
+      const version = await fetchVersionFromUrl(url);
+      if (version) {
+        return compareVersions(version);
+      }
     }
 
-    // 如果兩個 URL 都失敗，返回獲取失敗狀態
+    // 如果所有 URL 都失敗，返回獲取失敗狀態
     return UpdateStatus.FETCH_FAILED;
   } catch (error) {
     console.error('版本檢查失敗:', error);
