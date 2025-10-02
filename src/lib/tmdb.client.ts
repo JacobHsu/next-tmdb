@@ -682,12 +682,7 @@ export async function getTrendingTags(limit = 6): Promise<string[]> {
     // console.error('獲取熱門標籤失敗:', error);
     // 返回備用標籤
     return [
-      '魷魚遊戲',
-      '愛的迫降',
-      '黑暗榮耀',
       '星期三',
-      '紙房子',
-      '梨泰院CLASS',
     ];
   }
 }
