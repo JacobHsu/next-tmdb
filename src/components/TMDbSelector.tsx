@@ -69,7 +69,7 @@ const TMDbSelector: React.FC<TMDbSelectorProps> = ({
 
   // 更新指示器位置的函數
   const updateIndicatorPosition = (
-    containerRef: React.RefObject<HTMLDivElement>,
+    containerRef: React.RefObject<HTMLDivElement | null>,
     buttonRefs: React.MutableRefObject<(HTMLButtonElement | null)[]>,
     activeIndex: number,
     setIndicatorStyle: React.Dispatch<
