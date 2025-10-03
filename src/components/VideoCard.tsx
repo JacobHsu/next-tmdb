@@ -124,11 +124,15 @@ export default function VideoCard({
 
   // 獲取收藏狀態
   useEffect(() => {
-    if (from === 'tmdb' || !actualSource || !actualId) return;
+    // TMDb 使用 tmdb_id，其他來源使用 actualSource + actualId
+    const sourceToUse = from === 'tmdb' ? 'tmdb' : actualSource;
+    const idToUse = from === 'tmdb' ? tmdb_id : actualId;
+
+    if (!sourceToUse || !idToUse) return;
 
     const fetchFavoriteStatus = async () => {
       try {
-        const fav = await isFavorited(actualSource, actualId);
+        const fav = await isFavorited(sourceToUse, idToUse);
         setFavorited(fav);
       } catch (err) {
         throw new Error('檢查收藏狀態失敗');
@@ -138,7 +142,7 @@ export default function VideoCard({
     fetchFavoriteStatus();
 
     // 監聽收藏狀態更新事件
-    const storageKey = generateStorageKey(actualSource, actualId);
+    const storageKey = generateStorageKey(sourceToUse, idToUse);
     const unsubscribe = subscribeToDataUpdates(
       'favoritesUpdated',
       (newFavorites: Record<string, any>) => {
@@ -149,23 +153,29 @@ export default function VideoCard({
     );
 
     return unsubscribe;
-  }, [from, actualSource, actualId]);
+  }, [from, actualSource, actualId, tmdb_id]);
 
   const handleToggleFavorite = useCallback(
     async (e: React.MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
-      if (from === 'tmdb' || !actualSource || !actualId) return;
+
+      // TMDb 使用 tmdb_id，其他來源使用 actualSource + actualId
+      const sourceToUse = from === 'tmdb' ? 'tmdb' : actualSource;
+      const idToUse = from === 'tmdb' ? tmdb_id : actualId;
+
+      if (!sourceToUse || !idToUse) return;
+
       try {
         if (favorited) {
           // 如果已收藏，刪除收藏
-          await deleteFavorite(actualSource, actualId);
+          await deleteFavorite(sourceToUse, idToUse);
           setFavorited(false);
         } else {
           // 如果未收藏，新增收藏
-          await saveFavorite(actualSource, actualId, {
+          await saveFavorite(sourceToUse, idToUse, {
             title: actualTitle,
-            source_name: source_name || '',
+            source_name: from === 'tmdb' ? 'TMDb' : (source_name || ''),
             year: actualYear || '',
             cover: actualPoster,
             total_episodes: actualEpisodes ?? 1,
@@ -181,6 +191,7 @@ export default function VideoCard({
       from,
       actualSource,
       actualId,
+      tmdb_id,
       actualTitle,
       source_name,
       actualYear,
@@ -264,7 +275,7 @@ export default function VideoCard({
         showSourceName: false,
         showProgress: false,
         showPlayButton: hasVideos === true, // 只有確定有影片時才顯示播放按鈕
-        showHeart: false,
+        showHeart: true,
         showCheckCircle: false,
         showIMDBLink: false,
         showTMDbLink: true,
