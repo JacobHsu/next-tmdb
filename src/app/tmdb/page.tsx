@@ -77,6 +77,9 @@ function TMDbPageClient() {
                   // TV list IDs
                   '2025': '8560350',
                   '2024': '8560351',
+                  '2023': '8560370',
+                  '2022': '8560355',
+                  '2021': '8561050',
                 };
           const listId =
             listIdMap[secondarySelection] ||

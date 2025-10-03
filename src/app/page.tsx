@@ -54,6 +54,7 @@ function HomeClient() {
     source_name: string;
     currentEpisode?: number;
     search_title?: string;
+    tmdb_id?: string;
   };
 
   const [favoriteItems, setFavoriteItems] = useState<FavoriteItem[]>([]);
@@ -132,6 +133,7 @@ function HomeClient() {
           source_name: fav.source_name,
           currentEpisode,
           search_title: fav?.search_title,
+          tmdb_id: source === 'tmdb' ? id : undefined,
         } as FavoriteItem;
       });
     setFavoriteItems(sorted);

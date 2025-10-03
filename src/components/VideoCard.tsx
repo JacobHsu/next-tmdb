@@ -258,7 +258,7 @@ export default function VideoCard({
         showHeart: true,
         showCheckCircle: false,
         showIMDBLink: false,
-        showTMDbLink: false,
+        showTMDbLink: actualSource === 'tmdb', // 如果是 TMDb 來源則顯示連結
         showRating: false,
       },
       search: {
@@ -283,7 +283,7 @@ export default function VideoCard({
       },
     };
     return configs[from] || configs.search;
-  }, [from, isAggregate, rate, hasVideos]);
+  }, [from, isAggregate, rate, hasVideos, actualSource]);
 
   return (
     <div
