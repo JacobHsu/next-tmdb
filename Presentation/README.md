@@ -2,6 +2,14 @@
 
 這是一個使用 Slidev 製作的專案介紹投影片。
 
+## 🌐 線上觀看
+
+投影片已自動部署到 GitHub Pages：
+
+**https://YOUR_USERNAME.github.io/next-tmdb/**
+
+> 💡 每次推送到 `main` 分支且修改 `Presentation/` 資料夾時，會自動觸發部署。
+
 ## 📦 安裝依賴
 
 ```bash
