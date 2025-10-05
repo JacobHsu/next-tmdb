@@ -75,7 +75,7 @@ function HomeClient() {
           getTMDbCategories({
             kind: 'tv',
             category: '年度熱門劇集',
-            type: '2024',
+            type: '2025',
             pageLimit: 20,
           }),
         ]);
