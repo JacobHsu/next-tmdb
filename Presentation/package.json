@@ -12,7 +12,8 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
-    "@slidev/cli": "^52.2.4"
+    "@slidev/cli": "^52.2.4",
+    "typescript": "^5.0.0"
   },
   "dependencies": {
     "@slidev/theme-default": "^0.25.0"

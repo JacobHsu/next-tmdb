@@ -5,7 +5,8 @@
       "Bash(mkdir:*)",
       "Bash(npm init:*)",
       "Bash(npm install:*)",
-      "WebFetch(domain:sli.dev)"
+      "WebFetch(domain:sli.dev)",
+      "Bash(test:*)"
     ],
     "deny": [],
     "ask": []
