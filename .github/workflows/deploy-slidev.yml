@@ -44,7 +44,7 @@ jobs:
     - name: Build Slidev
       run: |
         cd Presentation
-        npm run build
+        npx slidev build --base /${{github.event.repository.name}}/
 
     - name: Setup Pages
       uses: actions/configure-pages@v4
