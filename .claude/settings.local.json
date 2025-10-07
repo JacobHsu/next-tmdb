@@ -6,7 +6,11 @@
       "Bash(npm init:*)",
       "Bash(npm install:*)",
       "WebFetch(domain:sli.dev)",
-      "Bash(test:*)"
+      "Bash(test:*)",
+      "Read(//d/7-next/next-tv/**)",
+      "Bash(npm test)",
+      "Bash(npm test:*)",
+      "Bash(npm run test:coverage:*)"
     ],
     "deny": [],
     "ask": []
