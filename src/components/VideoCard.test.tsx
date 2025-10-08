@@ -19,8 +19,9 @@ import VideoCard from './VideoCard'
 // Mock next/image
 jest.mock('next/image', () => ({
   __esModule: true,
-  default: (props: any) => {
+  default: (props: Record<string, unknown>) => {
     // 移除 Next.js 專屬屬性以避免警告
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { onLoadingComplete, fill, priority, quality, placeholder, ...restProps } = props
     // eslint-disable-next-line jsx-a11y/alt-text, @next/next/no-img-element
     return <img {...restProps} />
@@ -44,12 +45,12 @@ const mockSubscribeToDataUpdates = jest.fn()
 const mockGenerateStorageKey = jest.fn()
 
 jest.mock('@/lib/db.client', () => ({
-  saveFavorite: (...args: any[]) => mockSaveFavorite(...args),
-  deleteFavorite: (...args: any[]) => mockDeleteFavorite(...args),
-  deletePlayRecord: (...args: any[]) => mockDeletePlayRecord(...args),
-  isFavorited: (...args: any[]) => mockIsFavorited(...args),
-  subscribeToDataUpdates: (...args: any[]) => mockSubscribeToDataUpdates(...args),
-  generateStorageKey: (...args: any[]) => mockGenerateStorageKey(...args),
+  saveFavorite: (...args: unknown[]) => mockSaveFavorite(...args),
+  deleteFavorite: (...args: unknown[]) => mockDeleteFavorite(...args),
+  deletePlayRecord: (...args: unknown[]) => mockDeletePlayRecord(...args),
+  isFavorited: (...args: unknown[]) => mockIsFavorited(...args),
+  subscribeToDataUpdates: (...args: unknown[]) => mockSubscribeToDataUpdates(...args),
+  generateStorageKey: (...args: unknown[]) => mockGenerateStorageKey(...args),
 }))
 
 // Mock utils
@@ -549,7 +550,7 @@ describe('VideoCard', () => {
 
       // 模擬圖片載入完成
       if (image) {
-        const onLoadingComplete = (image as any).onLoadingComplete
+        const onLoadingComplete = (image as HTMLImageElement & { onLoadingComplete?: () => void }).onLoadingComplete
         if (onLoadingComplete) {
           onLoadingComplete()
         }
@@ -573,7 +574,7 @@ describe('VideoCard', () => {
 
       // 模擬圖片載入錯誤
       if (image) {
-        const onError = (image as any).onError
+        const onError = (image as HTMLImageElement & { onError?: () => void }).onError
         if (onError) {
           onError()
         }
