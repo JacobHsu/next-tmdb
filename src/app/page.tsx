@@ -20,7 +20,7 @@ import CapsuleSwitch from '@/components/CapsuleSwitch';
 import ContinueWatching from '@/components/ContinueWatching';
 import PageLayout from '@/components/PageLayout';
 import ScrollableRow from '@/components/ScrollableRow';
-import { useSite } from '@/components/SiteProvider';
+// import { useSite } from '@/components/SiteProvider';
 import VideoCard from '@/components/VideoCard';
 
 function HomeClient() {
@@ -28,21 +28,22 @@ function HomeClient() {
   const [hotMovies, setHotMovies] = useState<TMDbItem[]>([]);
   const [hotTvShows, setHotTvShows] = useState<TMDbItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const { announcement } = useSite();
+  // const { announcement } = useSite();
 
-  const [showAnnouncement, setShowAnnouncement] = useState(false);
+  // 已隱藏公告彈窗
+  // const [showAnnouncement, setShowAnnouncement] = useState(false);
 
   // 檢查公告彈窗狀態
-  useEffect(() => {
-    if (typeof window !== 'undefined' && announcement) {
-      const hasSeenAnnouncement = localStorage.getItem('hasSeenAnnouncement');
-      if (hasSeenAnnouncement !== announcement) {
-        setShowAnnouncement(true);
-      } else {
-        setShowAnnouncement(Boolean(!hasSeenAnnouncement && announcement));
-      }
-    }
-  }, [announcement]);
+  // useEffect(() => {
+  //   if (typeof window !== 'undefined' && announcement) {
+  //     const hasSeenAnnouncement = localStorage.getItem('hasSeenAnnouncement');
+  //     if (hasSeenAnnouncement !== announcement) {
+  //       setShowAnnouncement(true);
+  //     } else {
+  //       setShowAnnouncement(Boolean(!hasSeenAnnouncement && announcement));
+  //     }
+  //   }
+  // }, [announcement]);
 
   // 收藏夾資料
   type FavoriteItem = {
@@ -161,10 +162,11 @@ function HomeClient() {
     return unsubscribe;
   }, [activeTab]);
 
-  const handleCloseAnnouncement = (announcement: string) => {
-    setShowAnnouncement(false);
-    localStorage.setItem('hasSeenAnnouncement', announcement); // 記錄已查看彈窗
-  };
+  // 已隱藏公告彈窗
+  // const handleCloseAnnouncement = (announcement: string) => {
+  //   setShowAnnouncement(false);
+  //   localStorage.setItem('hasSeenAnnouncement', announcement); // 記錄已查看彈窗
+  // };
 
   return (
     <PageLayout>
@@ -323,7 +325,8 @@ function HomeClient() {
           )}
         </div>
       </div>
-      {announcement && showAnnouncement && (
+      {/* 已隱藏公告彈窗 */}
+      {/* {announcement && showAnnouncement && (
         <div
           className={`fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm dark:bg-black/70 p-4 transition-opacity duration-300 ${
             showAnnouncement ? '' : 'opacity-0 pointer-events-none'
@@ -356,7 +359,7 @@ function HomeClient() {
             </button>
           </div>
         </div>
-      )}
+      )} */}
     </PageLayout>
   );
 }
