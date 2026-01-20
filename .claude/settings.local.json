@@ -15,7 +15,12 @@
       "Bash(ls:*)",
       "Bash(dir D:7-nextnext-tmdbnext.config*)",
       "Bash(dir:*)",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "Bash(if not exist \"D:\\\\7-next\\\\next-tmdb\\\\docs\" mkdir \"D:\\\\7-next\\\\next-tmdb\\\\docs\")",
+      "WebFetch(domain:vercel.link)",
+      "WebFetch(domain:vercel.com)",
+      "WebSearch",
+      "Bash(pnpm update:*)"
     ],
     "deny": [],
     "ask": []
