@@ -80,6 +80,7 @@ function TMDbPageClient() {
                   '2023': '8560370',
                   '2022': '8560355',
                   '2021': '8561050',
+                  '2020': '8562039',
                 };
           const listId =
             listIdMap[secondarySelection] ||
