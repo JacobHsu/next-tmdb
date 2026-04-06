@@ -359,7 +359,7 @@ export default function VideoCard({
 
         {/* 徽章 */}
         {config.showRating && rate && (
-          <div className='absolute top-2 right-2 bg-pink-500 text-white text-xs font-bold w-7 h-7 rounded-full flex items-center justify-center shadow-md transition-all duration-300 ease-out group-hover:scale-110'>
+          <div className='absolute top-2 right-2 bg-pink-600 text-white text-xs font-bold w-7 h-7 rounded-full flex items-center justify-center shadow-md transition-all duration-300 ease-out group-hover:scale-110'>
             {rate}
           </div>
         )}
@@ -378,6 +378,7 @@ export default function VideoCard({
             href={`https://www.imdb.com/title/${imdb_id}`}
             target='_blank'
             rel='noopener noreferrer'
+            aria-label={`${actualTitle} on IMDb`}
             onClick={(e) => e.stopPropagation()}
             className='absolute top-2 left-2 opacity-0 -translate-x-2 transition-all duration-300 ease-in-out delay-100 group-hover:opacity-100 group-hover:translate-x-0'
           >
@@ -395,6 +396,7 @@ export default function VideoCard({
             }/${tmdb_id}`}
             target='_blank'
             rel='noopener noreferrer'
+            aria-label={`${actualTitle} on TMDb`}
             onClick={(e) => e.stopPropagation()}
             className='absolute top-2 left-2 opacity-0 -translate-x-2 transition-all duration-300 ease-in-out delay-100 group-hover:opacity-100 group-hover:translate-x-0'
           >
