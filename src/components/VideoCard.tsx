@@ -35,6 +35,8 @@ interface VideoCardProps {
   rate?: string;
   items?: SearchResult[];
   type?: string;
+  sizes?: string;
+  priority?: boolean;
 }
 
 export default function VideoCard({
@@ -54,6 +56,8 @@ export default function VideoCard({
   rate,
   items,
   type = '',
+  sizes = '(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 20vw, 17vw',
+  priority = false,
 }: VideoCardProps) {
   const router = useRouter();
   const [favorited, setFavorited] = useState(false);
@@ -304,6 +308,8 @@ export default function VideoCard({
             src={processImageUrl(actualPoster)}
             alt={actualTitle}
             fill
+            sizes={sizes}
+            priority={priority}
             className='object-cover'
             referrerPolicy='no-referrer'
             onLoadingComplete={() => setIsLoading(true)}

@@ -268,6 +268,8 @@ function HomeClient() {
                             rate={movie.rate}
                             year={movie.year}
                             type='movie'
+                            sizes='(max-width: 640px) 96px, 176px'
+                            priority={index < 4}
                           />
                         </div>
                       ))}
@@ -316,6 +318,7 @@ function HomeClient() {
                             rate={show.rate}
                             year={show.year}
                             type='tv'
+                            sizes='(max-width: 640px) 96px, 176px'
                           />
                         </div>
                       ))}
