@@ -6,8 +6,8 @@ module.exports = {
       startServerCommand: 'npm run start',
 
       // lhci 會等到 terminal 輸出包含這段文字才開始測試
-      // Next.js 15 啟動時會印出 "Ready in" 或 "ready started"
-      startServerReadyPattern: 'Ready in|ready started',
+      // Next.js 15 啟動時會印出 "Ready in"
+      startServerReadyPattern: 'Ready in',
 
       // 要測試的 URL 列表
       url: [
