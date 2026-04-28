@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 
-import { getCacheTime } from '@/lib/config';
 import { fetchTMDbList } from '@/lib/tmdb.client';
 
 export const runtime = 'nodejs';
@@ -25,12 +24,11 @@ export async function GET(request: Request) {
   try {
     const result = await fetchTMDbList(listId, limit);
 
-    const cacheTime = await getCacheTime();
     return NextResponse.json(result, {
       headers: {
-        'Cache-Control': `public, max-age=${cacheTime}, s-maxage=${cacheTime}`,
-        'CDN-Cache-Control': `public, s-maxage=${cacheTime}`,
-        'Vercel-CDN-Cache-Control': `public, s-maxage=${cacheTime}`,
+        'Cache-Control': 'public, max-age=3600, s-maxage=3600',
+        'CDN-Cache-Control': 'public, s-maxage=3600',
+        'Vercel-CDN-Cache-Control': 'public, s-maxage=3600',
       },
     });
   } catch (error) {
