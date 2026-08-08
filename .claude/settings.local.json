@@ -20,7 +20,11 @@
       "WebFetch(domain:vercel.link)",
       "WebFetch(domain:vercel.com)",
       "WebSearch",
-      "Bash(pnpm update:*)"
+      "Bash(pnpm update:*)",
+      "Bash(git -C d:/7-next/next-tmdb branch --show-current)",
+      "Bash(git -C d:/7-next/next-tmdb status)",
+      "Bash(git -C d:/7-next/next-tmdb add src/app/api/tmdb/list/route.ts)",
+      "Bash(git -C d:/7-next/next-tmdb commit -m \"perf: reduce list cache from 2h to 1h\")"
     ],
     "deny": [],
     "ask": []

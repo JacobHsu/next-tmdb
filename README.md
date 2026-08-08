@@ -84,6 +84,61 @@ src/
 - **響應式設計** - Mobile First 設計理念
 - **無障礙支援** - 語意化 HTML 與鍵盤導航
 
+## 🗂️ 資料來源與新增年度片單
+
+本專案**沒有本地資料檔**，所有影視資料皆即時透過 [TMDB API](https://www.themoviedb.org/documentation/api) 取得。年份資料有兩種來源：
+
+| 來源 | 說明 | 設定位置 |
+|------|------|----------|
+| **首頁熱門**（自動） | 用 TMDB Discover API 依年份自動抓取當年熱門電影/劇集 | `src/app/page.tsx`（`type: '2025'`） |
+| **年度私推**（個人清單） | 使用你在 TMDB 網站上手動建立的片單，透過 list ID 對應 | `src/app/tmdb/page.tsx`（`listIdMap`） |
+
+### 如何新增某一年度的片單（以 2026 為例）
+
+**步驟 1：在 TMDB 網站建立清單**
+
+1. 登入 [themoviedb.org](https://www.themoviedb.org)
+2. 分別建立「2026 電影」與「2026 劇集」兩個清單（List），加入想推薦的影片
+3. 進入清單頁面，網址類似 `https://www.themoviedb.org/list/8559774`，最後的數字 `8559774` 就是 **list ID**，記下電影與劇集各自的 ID
+
+**步驟 2：加入 `listIdMap`**
+
+編輯 `src/app/tmdb/page.tsx`，在兩個 `listIdMap` 各加一行（放在最上面，維持由新到舊）：
+
+```ts
+type === 'movie'
+  ? {
+      '2026': '你的電影清單ID',   // ← 新增
+      '2025': '8559774',
+      // ...
+    }
+  : {
+      '2026': '你的劇集清單ID',   // ← 新增
+      '2025': '8560350',
+      // ...
+    };
+```
+
+**步驟 3：加入年份選擇器選項**
+
+編輯 `src/components/TMDbSelector.tsx`，在 `movieSecondaryOptions` 與 `tvSecondaryOptions` 各加一行（放在最上面）：
+
+```ts
+const movieSecondaryOptions: SelectorOption[] = [
+  { label: '2026', value: '2026' },   // ← 新增
+  { label: '2025', value: '2025' },
+  // ...
+];
+```
+
+**步驟 4（可選）：設為預設年份**
+
+若要讓頁面預設顯示 2026，將以下位置的 `'2025'` 改為 `'2026'`：
+- `src/app/tmdb/page.tsx`：預設 `secondarySelection`（第 34、35、188、191 行）
+- `src/app/page.tsx`：首頁 `type: '2025'`（第 73、79 行）
+
+> 💡 個人清單（年度私推）不支援分頁，一次載入整份清單；首頁熱門與年度高分則透過 Discover API 依年份查詢。
+
 ## 📚 API 文檔
 
 本專案使用 [TMDB API](https://www.themoviedb.org/documentation/api)，主要端點：

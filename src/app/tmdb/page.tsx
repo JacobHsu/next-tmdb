@@ -31,8 +31,8 @@ function TMDbPageClient() {
     return type === 'movie' ? '年度私推' : '年度私推';
   });
   const [secondarySelection, setSecondarySelection] = useState<string>(() => {
-    if (type === 'movie') return '2025'; // 默認2025年（你的個人清單）
-    if (type === 'tv') return '2025'; // 默認2025年（你的個人清單）
+    if (type === 'movie') return '2026'; // 默認2026年（你的個人清單）
+    if (type === 'tv') return '2026'; // 默認2026年（你的個人清單）
     return '';
   });
 
@@ -66,21 +66,27 @@ function TMDbPageClient() {
           const listIdMap: Record<string, string> =
             type === 'movie'
               ? {
+                  '2026': '8639249',
                   '2025': '8559774',
                   '2024': '8559782',
                   '2023': '8559901',
                   '2022': '8559936',
                   '2021': '8560184',
                   '2020': '8560185',
+                  '2019': '8571833',
+                  '2018': '8571832',
                 }
               : {
                   // TV list IDs
+                  '2026': '8633878',
                   '2025': '8560350',
                   '2024': '8560351',
                   '2023': '8560370',
                   '2022': '8560355',
                   '2021': '8561050',
                   '2020': '8562039',
+                  '2019': '8633876',
+                  '2018': '8571833',
                 };
           const listId =
             listIdMap[secondarySelection] ||
@@ -185,10 +191,10 @@ function TMDbPageClient() {
   useEffect(() => {
     if (type === 'movie') {
       setPrimarySelection('年度私推');
-      setSecondarySelection('2025'); // 默認顯示 2025 個人清單
+      setSecondarySelection('2026'); // 默認顯示 2026 個人清單
     } else if (type === 'tv') {
       setPrimarySelection('年度私推');
-      setSecondarySelection('2025'); // 默認顯示 2025 個人清單
+      setSecondarySelection('2026'); // 默認顯示 2026 個人清單
     }
     setSelectorsReady(true);
   }, [type]);
